@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace DY\CFC\Operation;
 
 use DateTimeInterface;
+use DY\CFC\Currency\CurrencyInterface;
+use DY\CFC\Currency\CurrencyServiceAwareInterface;
 use DY\CFC\User\UserInterface;
 
 interface OperationInterface
@@ -17,7 +19,13 @@ interface OperationInterface
 
     public function getAmount(): float;
 
-    public function getCurrency(): string;
+    public function getAmountForCharge(): float;
+
+    public function getCommissionRate(): float;
+
+    public function getCurrency(): CurrencyInterface;
 
     public function getFee(): float;
+
+    public function getPrevious(): ?OperationInterface;
 }

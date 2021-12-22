@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace DY\CFC\Operation;
 
 use DateTimeInterface;
+use DY\CFC\Currency\CurrencyInterface;
 use DY\CFC\Operation\Exception\WrongOperationTypeException;
 use DY\CFC\User\UserInterface;
 
-class Operation implements OperationInterface
+abstract class OperationAbstract implements OperationInterface
 {
-    private const DEPOSIT = "deposit";
-    private const WITHDRAW = "withdraw";
+    public const DEPOSIT = "deposit";
+    public const WITHDRAW = "withdraw";
 
     private bool $deposit;
+    private ?OperationInterface $previous;
 
     /**
      * @throws WrongOperationTypeException
@@ -22,7 +24,7 @@ class Operation implements OperationInterface
         private DateTimeInterface $date,
         string $type,
         private float $amount,
-        private string $currency,
+        private CurrencyInterface $currency,
         private UserInterface $user
     ) {
         if ($type !== self::DEPOSIT && $type !== self::WITHDRAW) {
@@ -30,6 +32,23 @@ class Operation implements OperationInterface
         }
 
         $this->deposit = $type === self::DEPOSIT;
+        $this->previous = $user->getLastOperation();
+    }
+
+    /**
+     * @throws WrongOperationTypeException
+     */
+    public static function create(
+        DateTimeInterface $date,
+        string $type,
+        float $amount,
+        CurrencyInterface $currency,
+        UserInterface $user
+    ): OperationInterface {
+        if ($type === self::DEPOSIT) {
+            return new Deposit($date, $amount, $currency, $user);
+        }
+        return new Withdraw($date, $amount, $currency, $user);
     }
 
     public function getDate(): DateTimeInterface
@@ -52,13 +71,18 @@ class Operation implements OperationInterface
         return $this->amount;
     }
 
-    public function getCurrency(): string
+    public function getCurrency(): CurrencyInterface
     {
         return $this->currency;
     }
 
     public function getFee(): float
     {
-        return 0;
+        return $this->getAmountForCharge() * $this->getCommissionRate();
+    }
+
+    public function getPrevious(): ?OperationInterface
+    {
+        return $this->previous;
     }
 }

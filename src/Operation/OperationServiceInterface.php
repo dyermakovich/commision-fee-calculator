@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DY\CFC\Operation;
 
+use DY\CFC\Currency\CurrencyInterface;
 use DY\CFC\User\UserInterface;
 
 interface OperationServiceInterface
@@ -12,12 +13,7 @@ interface OperationServiceInterface
         string $date,
         string $type,
         string $amount,
-        string $currency,
+        CurrencyInterface $currency,
         UserInterface $user
     ): OperationInterface;
-
-    /**
-     * @return OperationInterface[]
-     */
-    public function getAll(): array;
 }

@@ -4,17 +4,19 @@ declare(strict_types=1);
 
 namespace DY\CFC\User;
 
-use DY\CFC\Service\IntegerParser;
+use DY\CFC\Operation\OperationInterface;
 use DY\CFC\User\Exception\WrongUserIDException;
 use DY\CFC\User\Exception\WrongUserTypeException;
 
 class User implements UserInterface
 {
-    private const PRIVATE = "private";
-    private const BUSINESS = "business";
+    public const PRIVATE = "private";
+    public const BUSINESS = "business";
 
     private int $id;
     private bool $business;
+
+    private array $operations = [];
 
     /**
      * @throws WrongUserIDException
@@ -43,5 +45,15 @@ class User implements UserInterface
     public function isBusiness(): bool
     {
         return $this->business;
+    }
+
+    public function addOperation(OperationInterface $operation): void
+    {
+        $this->operations[] = $operation;
+    }
+
+    public function getLastOperation(): ?OperationInterface
+    {
+        return empty($this->operations) ? null : $this->operations[count($this->operations) - 1];
     }
 }

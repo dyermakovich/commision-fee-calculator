@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace DY\CFC\Operation;
 
+use DY\CFC\Currency\CurrencyInterface;
 use DY\CFC\Operation\Exception\WrongOperationAmountException;
 use DY\CFC\Operation\Exception\WrongOperationDateException;
 use DY\CFC\Operation\Exception\WrongOperationTypeException;
@@ -13,11 +14,6 @@ use DY\CFC\User\UserInterface;
 
 class OperationService implements OperationServiceInterface
 {
-    /**
-     * @var OperationInterface[]
-     */
-    private array $operations = [];
-
     public function __construct(private ParserInterface $parser)
     {
     }
@@ -36,7 +32,7 @@ class OperationService implements OperationServiceInterface
         string $date,
         string $type,
         string $amount,
-        string $currency,
+        CurrencyInterface $currency,
         UserInterface $user
     ): OperationInterface {
         $operationDate = $this->parser->parseDate($date);
@@ -51,13 +47,16 @@ class OperationService implements OperationServiceInterface
             throw new WrongOperationAmountException();
         }
 
-        $operation = new Operation($operationDate, $type, $operationAmount, $currency, $user);
-        $this->operations[] = $operation;
-        return $operation;
-    }
+        $operation = OperationAbstract::create(
+            $operationDate,
+            $type,
+            $operationAmount,
+            $currency,
+            $user
+        );
 
-    public function getAll(): array
-    {
-        return $this->operations;
+        $user->addOperation($operation);
+
+        return $operation;
     }
 }

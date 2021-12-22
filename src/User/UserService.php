@@ -4,14 +4,11 @@ declare(strict_types=1);
 
 namespace DY\CFC\User;
 
-use DY\CFC\Service\IntegerParser;
 use DY\CFC\Service\Parser;
 use DY\CFC\Service\ParserInterface;
 use DY\CFC\User\Exception\WrongUserIDException;
 use DY\CFC\User\Exception\WrongUserTypeException;
-use Exception;
 use DY\CFC\User\Exception\UserFoundException;
-use JetBrains\PhpStorm\Pure;
 
 class UserService implements UserServiceInterface
 {
@@ -50,6 +47,22 @@ class UserService implements UserServiceInterface
 
         $parsedId = $this->parser->parseInteger($id, 0);
         $user = new User($parsedId, $type);
-        return $this->users[$user->getID()] = $user;
+        return $this->users[$parsedId] = $user;
+    }
+
+    /**
+     * @throws WrongUserTypeException
+     * @throws WrongUserIDException
+     * @throws UserFoundException
+     */
+    public function findOrAddNew(string $id, string $type): UserInterface
+    {
+        $user = $this->findByID($id);
+
+        if (!isset($user)) {
+            $user = $this->addNew($id, $type);
+        }
+
+        return $user;
     }
 }
