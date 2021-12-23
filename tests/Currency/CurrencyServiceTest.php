@@ -7,20 +7,23 @@ namespace DY\CFC\Tests\Currency;
 use DY\CFC\Currency\Currency;
 use DY\CFC\Currency\CurrencyService;
 use DY\CFC\Currency\CurrencyServiceInterface;
+use DY\CFC\Service\Exception\ExchangeRatesLoadingException;
+use DY\CFC\Service\Rounder;
+use DY\CFC\Service\RounderInterface;
+use DY\CFC\Tests\MockExchangeRateLoader;
 use PHPUnit\Framework\TestCase;
 
 final class CurrencyServiceTest extends TestCase
 {
     private CurrencyServiceInterface $currencyService;
 
+    /**
+     * @throws ExchangeRatesLoadingException
+     */
     public function setUp(): void
     {
-        $this->currencyService = CurrencyService::create();
-
-        if(!defined("EXCHANGERATES_API_KEY")) {
-            define("EXCHANGERATES_API_KEY", "ef461b886b59c1f369a2f75642875a5c");
-        }
-
+        $mockExchangeRateLoader = MockExchangeRateLoader::create();
+        $this->currencyService = CurrencyService::create($mockExchangeRateLoader);
         parent::setUp();
     }
 
@@ -36,15 +39,15 @@ final class CurrencyServiceTest extends TestCase
     public function testFormatEUR(): void
     {
         $eur = new Currency("EUR", 2);
-        $this->assertEquals("0.03", $this->currencyService->format($eur, 0.023));
-        $this->assertEquals("0.03", $this->currencyService->format($eur, 0.02001));
-        $this->assertEquals("0.02", $this->currencyService->format($eur, 0.020));
+        $this->assertEquals("0.03", $this->currencyService->format($eur, 0.031));
+        $this->assertEquals("0.03", $this->currencyService->format($eur, 0.0301));
+        $this->assertEquals("0.02", $this->currencyService->format($eur, 0.021));
     }
 
     public function testFormatJPY(): void
     {
         $eur = new Currency("JPY", 0);
-        $this->assertEquals("101", $this->currencyService->format($eur, 100.1));
+        $this->assertEquals("101", $this->currencyService->format($eur, 101.1));
         $this->assertEquals("1234", $this->currencyService->format($eur, 1234));
     }
 

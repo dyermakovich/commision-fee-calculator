@@ -5,67 +5,29 @@ declare(strict_types=1);
 namespace DY\CFC\Currency;
 
 use DY\CFC\Currency\Exception\UnsupportedCurrencyPrecisionException;
-use DY\CFC\Service\Parser;
-use DY\CFC\Service\ParserInterface;
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
+use DY\CFC\Service\Exception\ExchangeRatesLoadingException;
+use DY\CFC\Service\ExchangeRateLoader;
+use DY\CFC\Service\ExchangeRateLoaderInterface;
 
 class CurrencyService implements CurrencyServiceInterface
 {
+    private const EUR = "EUR";
+
     private array $currencies = [];
 
-    public function __construct(
-        private ParserInterface $parser,
-        private HttpClientInterface $client
-    ) {
-    }
-
-    public static function create(): CurrencyServiceInterface
+    public function __construct(private ?ExchangeRateLoaderInterface $exchangeRateLoader)
     {
-        return new CurrencyService(Parser::create(), HttpClient::create());
-    }
-
-    public function getCurrenciesSymbols(): array
-    {
-        $result = array();
-
-        /**
-         * @var CurrencyInterface $currency
-         */
-        foreach ($this->currencies as $currency) {
-            $result[] = $currency->getName();
-        }
-
-        return $result;
     }
 
     /**
-     * @throws TransportExceptionInterface
-     * @throws ServerExceptionInterface
-     * @throws RedirectionExceptionInterface
-     * @throws ClientExceptionInterface
+     * @throws ExchangeRatesLoadingException
      */
-    public function loadExchangeRates(): void
+    public static function create(?ExchangeRateLoaderInterface $loader = null): CurrencyServiceInterface
     {
-        $response = $this->client->request(
-            "GET",
-            sprintf(
-                "http://api.exchangeratesapi.io/latest?access_key=%s&base=EUR&symbols=%s",
-                EXCHANGERATES_API_KEY,
-                implode(",", $this->getCurrenciesSymbols())
-            )
-        );
-
-        $data = json_decode($response->getContent());
-
-        foreach (get_object_vars($data->rates) as $symbol => $rate) {
-            $parsedRate = $this->parser->parseFloat($rate, 1);
-            $this->findByName($symbol)?->setExchangeRateFromEuro($parsedRate);
+        if (!isset($loader)) {
+            $loader = ExchangeRateLoader::create();
         }
+        return new CurrencyService($loader);
     }
 
     /**
@@ -74,11 +36,11 @@ class CurrencyService implements CurrencyServiceInterface
     public function format(CurrencyInterface $currency, float $amount): string
     {
         if ($currency->getPrecision() === 0) {
-            return sprintf("%d", ceil($amount));
+            return sprintf("%d", $amount);
         }
 
         if ($currency->getPrecision() === 2) {
-            return sprintf("%.2f", ceil($amount * 100) / 100);
+            return sprintf("%.2f", $amount);
         }
 
         throw new UnsupportedCurrencyPrecisionException();
@@ -95,12 +57,22 @@ class CurrencyService implements CurrencyServiceInterface
         return $this->currencies[strtoupper($name)] ?? null;
     }
 
+    public function getExchangeRateFromEuro(string $symbol): float
+    {
+        return $this->exchangeRateLoader?->getExchangeRate(self::EUR, $symbol) ?? 1;
+    }
+
     public function findOrAddNew(string $name, int $precision): CurrencyInterface
     {
         $uppercaseName = strtoupper($name);
+
         if (!isset($this->currencies[$uppercaseName])) {
-            $this->currencies[$uppercaseName] = new Currency($uppercaseName, $precision);
+            $currency = new Currency($uppercaseName, $precision);
+            $exchangeRate = $this->getExchangeRateFromEuro($currency->getName());
+            $currency->setExchangeRateFromEuro($exchangeRate);
+            $this->currencies[$uppercaseName] = $currency;
         }
+
         return $this->currencies[$uppercaseName];
     }
 }

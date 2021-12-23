@@ -12,5 +12,7 @@ interface CurrencyInterface
 
     public function convertFromEuro(float $amountInEuro): float;
 
-    public function setExchangeRateFromEuro(float $rate): void;
+    public function convertToEuro(float $amount): float;
+
+    public function setExchangeRateFromEuro(float $rate): CurrencyInterface;
 }

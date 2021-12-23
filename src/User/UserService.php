@@ -6,9 +6,9 @@ namespace DY\CFC\User;
 
 use DY\CFC\Service\Parser;
 use DY\CFC\Service\ParserInterface;
+use DY\CFC\User\Exception\UserFoundException;
 use DY\CFC\User\Exception\WrongUserIDException;
 use DY\CFC\User\Exception\WrongUserTypeException;
-use DY\CFC\User\Exception\UserFoundException;
 
 class UserService implements UserServiceInterface
 {

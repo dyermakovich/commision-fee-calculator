@@ -13,6 +13,4 @@ interface CurrencyServiceInterface
     public function findByName(string $name): ?CurrencyInterface;
 
     public function findOrAddNew(string $name, int $precision): CurrencyInterface;
-
-    public function loadExchangeRates(): void;
 }

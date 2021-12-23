@@ -7,9 +7,9 @@ namespace DY\CFC;
 use DY\CFC\Currency\CurrencyService;
 use DY\CFC\Currency\CurrencyServiceInterface;
 use DY\CFC\Exception\IncorrectInputException;
-use DY\CFC\Operation\OperationInterface;
 use DY\CFC\Operation\OperationService;
 use DY\CFC\Operation\OperationServiceInterface;
+use DY\CFC\Service\ExchangeRateLoaderInterface;
 use DY\CFC\User\UserService;
 use DY\CFC\User\UserServiceInterface;
 
@@ -22,12 +22,15 @@ class CommissionFeeCalculatorApplication
     ) {
     }
 
-    public static function create(): CommissionFeeCalculatorApplication
+    /**
+     * @throws Service\Exception\ExchangeRatesLoadingException
+     */
+    public static function create(?ExchangeRateLoaderInterface $loader = null): CommissionFeeCalculatorApplication
     {
         return new CommissionFeeCalculatorApplication(
             UserService::create(),
             OperationService::create(),
-            CurrencyService::create()
+            CurrencyService::create($loader)
         );
     }
 

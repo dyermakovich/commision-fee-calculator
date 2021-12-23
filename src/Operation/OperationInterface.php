@@ -6,10 +6,9 @@ namespace DY\CFC\Operation;
 
 use DateTimeInterface;
 use DY\CFC\Currency\CurrencyInterface;
-use DY\CFC\Currency\CurrencyServiceAwareInterface;
 use DY\CFC\User\UserInterface;
 
-interface OperationInterface
+interface OperationInterface extends RounderAwareInterface, PreviousWeekOperationsInterface
 {
     public function getDate(): DateTimeInterface;
 
@@ -18,6 +17,8 @@ interface OperationInterface
     public function isDeposit(): bool;
 
     public function getAmount(): float;
+
+    public function getAmountInEuro(): float;
 
     public function getAmountForCharge(): float;
 
@@ -28,4 +29,6 @@ interface OperationInterface
     public function getFee(): float;
 
     public function getPrevious(): ?OperationInterface;
+
+    public function getType(): string;
 }

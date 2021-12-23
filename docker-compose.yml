@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  www:
+    build: .
+    ports:
+      - "80:80"
+    volumes:
+      - .:/var/www/html/
+    networks:
+      - default

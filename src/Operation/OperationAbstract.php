@@ -4,34 +4,26 @@ declare(strict_types=1);
 
 namespace DY\CFC\Operation;
 
+use DateTime;
 use DateTimeInterface;
 use DY\CFC\Currency\CurrencyInterface;
+use DY\CFC\Exception\UnexpectedException;
 use DY\CFC\Operation\Exception\WrongOperationTypeException;
+use DY\CFC\Service\RounderInterface;
 use DY\CFC\User\UserInterface;
 
 abstract class OperationAbstract implements OperationInterface
 {
-    public const DEPOSIT = "deposit";
-    public const WITHDRAW = "withdraw";
-
-    private bool $deposit;
     private ?OperationInterface $previous;
+    private ?RounderInterface $rounder;
 
-    /**
-     * @throws WrongOperationTypeException
-     */
-    public function __construct(
+    private function __construct(
         private DateTimeInterface $date,
-        string $type,
+        private string $type,
         private float $amount,
         private CurrencyInterface $currency,
         private UserInterface $user
     ) {
-        if ($type !== self::DEPOSIT && $type !== self::WITHDRAW) {
-            throw new WrongOperationTypeException();
-        }
-
-        $this->deposit = $type === self::DEPOSIT;
         $this->previous = $user->getLastOperation();
     }
 
@@ -45,10 +37,14 @@ abstract class OperationAbstract implements OperationInterface
         CurrencyInterface $currency,
         UserInterface $user
     ): OperationInterface {
-        if ($type === self::DEPOSIT) {
-            return new Deposit($date, $amount, $currency, $user);
+        if ($type === OperationType::DEPOSIT) {
+            return new Deposit($date, $type, $amount, $currency, $user);
         }
-        return new Withdraw($date, $amount, $currency, $user);
+        if ($type === OperationType::WITHDRAW) {
+            return new Withdraw($date, $type, $amount, $currency, $user);
+        }
+
+        throw new WrongOperationTypeException();
     }
 
     public function getDate(): DateTimeInterface
@@ -63,12 +59,22 @@ abstract class OperationAbstract implements OperationInterface
 
     public function isDeposit(): bool
     {
-        return $this->deposit;
+        return $this->getType() === OperationType::DEPOSIT;
+    }
+
+    public function getType(): string
+    {
+        return $this->type;
     }
 
     public function getAmount(): float
     {
         return $this->amount;
+    }
+
+    public function getAmountInEuro(): float
+    {
+        return $this->currency->convertToEuro($this->getAmount());
     }
 
     public function getCurrency(): CurrencyInterface
@@ -78,11 +84,93 @@ abstract class OperationAbstract implements OperationInterface
 
     public function getFee(): float
     {
-        return $this->getAmountForCharge() * $this->getCommissionRate();
+        return $this->rounder->roundUp(
+            $this->getAmountForCharge() * $this->getCommissionRate(),
+            $this->currency->getPrecision()
+        );
     }
 
     public function getPrevious(): ?OperationInterface
     {
         return $this->previous;
+    }
+
+    public function setRounder(RounderInterface $rounder)
+    {
+        $this->rounder = $rounder;
+    }
+
+    /**
+     * @throws UnexpectedException
+     */
+    public function getTheNearestMonday(): DateTimeInterface
+    {
+        $date = DateTime::createFromInterface($this->getDate())->modify("previous monday");
+
+        if ($date === false) {
+            throw new UnexpectedException();
+        }
+
+        return $date;
+    }
+
+    /**
+     * @throws UnexpectedException
+     */
+    public function getTheNearestMondayAsString(): string
+    {
+        return $this->getTheNearestMonday()->format("Y-m-d");
+    }
+
+    /**
+     * @return OperationInterface[]
+     * @throws UnexpectedException
+     */
+    public function getOperationsDuringThisWeek(string $type = OperationType::DEPOSIT): array
+    {
+        $result = array();
+
+        $theNearestMonday = $this->getTheNearestMonday();
+        $currentOperation = $this->getPrevious();
+
+        while ($currentOperation !== null) {
+            if ($currentOperation->getType() !== $type) {
+                $currentOperation = $currentOperation->getPrevious();
+                continue;
+            }
+
+            if ($currentOperation->getDate()->getTimestamp() < $theNearestMonday->getTimestamp()) {
+                break;
+            }
+
+            $result[] = $currentOperation;
+            $currentOperation = $currentOperation->getPrevious();
+        }
+
+        return $result;
+    }
+
+    /**
+     * Returns number of withdraw operations from the nearest Monday before current operation.
+     * @throws UnexpectedException
+     */
+    public function getOperationsCountDuringThisWeek(string $type = OperationType::DEPOSIT): int
+    {
+        return count($this->getOperationsDuringThisWeek($type));
+    }
+
+    /**
+     * Returns amount of withdraw operations from the nearest Monday before current operation.
+     * @throws UnexpectedException
+     */
+    public function getOperationsAmountDuringThisWeekInEuro(string $type = OperationType::DEPOSIT): float
+    {
+        $amount = 0;
+
+        foreach ($this->getOperationsDuringThisWeek($type) as $operation) {
+            $amount += $operation->getAmountInEuro();
+        }
+
+        return $amount;
     }
 }

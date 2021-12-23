@@ -6,7 +6,12 @@ namespace DY\CFC\Tests;
 
 use DY\CFC\CommissionFeeCalculatorApplication;
 use DY\CFC\Exception\IncorrectInputException;
+use DY\CFC\Service\Exception\ExchangeRatesLoadingException;
+use DY\CFC\Service\ExchangeRateLoader;
+use DY\CFC\Service\ExchangeRateLoaderInterface;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 final class CommissionFeeCalculatorApplicationTest extends TestCase
 {
@@ -50,14 +55,20 @@ final class CommissionFeeCalculatorApplicationTest extends TestCase
 
     /**
      * @throws IncorrectInputException
+     * @throws ExchangeRatesLoadingException
      */
     public function testApplication(): void
     {
-        $app = CommissionFeeCalculatorApplication::create();
+        $exchangeRateLoader = MockExchangeRateLoader::create();
+        $app = CommissionFeeCalculatorApplication::create($exchangeRateLoader);
         $input = $this->getInput();
 
         foreach ($this->getOutput() as $i => $singleOutput) {
-            $this->assertEquals($singleOutput, $app->process($input[$i]), sprintf("Input[%d]: %s", $i, $input[$i]));
+            $this->assertEquals(
+                $singleOutput,
+                $app->process($input[$i]),
+                sprintf("Input[%d]: %s", $i, $input[$i])
+            );
         }
     }
 }

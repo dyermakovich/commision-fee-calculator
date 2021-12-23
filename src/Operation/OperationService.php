@@ -10,17 +10,21 @@ use DY\CFC\Operation\Exception\WrongOperationDateException;
 use DY\CFC\Operation\Exception\WrongOperationTypeException;
 use DY\CFC\Service\Parser;
 use DY\CFC\Service\ParserInterface;
+use DY\CFC\Service\Rounder;
+use DY\CFC\Service\RounderInterface;
 use DY\CFC\User\UserInterface;
 
 class OperationService implements OperationServiceInterface
 {
-    public function __construct(private ParserInterface $parser)
-    {
+    public function __construct(
+        private ParserInterface $parser,
+        private RounderInterface $rounder
+    ) {
     }
 
     public static function create(): OperationServiceInterface
     {
-        return new OperationService(Parser::create());
+        return new OperationService(Parser::create(), Rounder::create());
     }
 
     /**
@@ -55,6 +59,7 @@ class OperationService implements OperationServiceInterface
             $user
         );
 
+        $operation->setRounder($this->rounder);
         $user->addOperation($operation);
 
         return $operation;
