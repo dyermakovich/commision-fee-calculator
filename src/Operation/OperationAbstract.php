@@ -151,7 +151,7 @@ abstract class OperationAbstract implements OperationInterface
     }
 
     /**
-     * Returns number of withdraw operations from the nearest Monday before current operation.
+     * Returns number of operations from the nearest Monday before current operation.
      * @throws UnexpectedException
      */
     public function getOperationsCountDuringThisWeek(string $type = OperationType::DEPOSIT): int
@@ -160,7 +160,7 @@ abstract class OperationAbstract implements OperationInterface
     }
 
     /**
-     * Returns amount of withdraw operations from the nearest Monday before current operation.
+     * Returns amount of operations from the nearest Monday before current operation.
      * @throws UnexpectedException
      */
     public function getOperationsAmountDuringThisWeekInEuro(string $type = OperationType::DEPOSIT): float

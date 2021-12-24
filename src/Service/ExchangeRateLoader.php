@@ -83,7 +83,7 @@ class ExchangeRateLoader implements ExchangeRateLoaderInterface
             | RedirectionExceptionInterface
             | ServerExceptionInterface $e
         ) {
-            throw new ExchangeRatesLoadingException("Can't load exchange rates from API server.", $e);
+            throw new ExchangeRatesLoadingException('Can\'t load exchange rates from API server due to error: "%s".', $e);
         }
 
         if (!isset($content->success) || !$content->success) {
