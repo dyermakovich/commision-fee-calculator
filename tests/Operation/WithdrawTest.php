@@ -59,7 +59,12 @@ class WithdrawTest extends TestCase
     {
         return $this->userService->findOrAddNew("1", User::PRIVATE);
     }
-    
+
+    private function createUser6(): UserInterface
+    {
+        return $this->userService->findOrAddNew("6", User::PRIVATE);
+    }
+
     private function createWithdraw1(): OperationInterface
     {
         return $this->operationService->addNew(
@@ -141,5 +146,78 @@ class WithdrawTest extends TestCase
         $this->assertEquals(0, $withdraw4->getWithdrawAmountDuringThisWeekInEuro());
         $this->assertEquals(0, $withdraw4->getAmountForCharge());
         $this->assertEquals(0, $withdraw4->getFee());
+    }
+
+    public function testWeekFreeOfCharge(): void
+    {
+        $withdraw1 = $this->operationService->addNew(
+            "2021-12-21",
+            OperationType::WITHDRAW,
+            "100",
+            $this->createCurrencyEUR(),
+            $this->createUser6()
+        );
+
+        $this->assertEquals(0, $withdraw1->getFee());
+
+        $withdraw2 = $this->operationService->addNew(
+            "2021-12-22",
+            OperationType::WITHDRAW,
+            "100",
+            $this->createCurrencyEUR(),
+            $this->createUser6()
+        );
+
+        $this->assertEquals(0, $withdraw2->getFee());
+
+        $withdraw3 = $this->operationService->addNew(
+            "2021-12-23",
+            OperationType::WITHDRAW,
+            "100",
+            $this->createCurrencyEUR(),
+            $this->createUser6()
+        );
+
+        $this->assertEquals(0, $withdraw3->getFee());
+
+        $withdraw4 = $this->operationService->addNew(
+            "2021-12-24",
+            OperationType::WITHDRAW,
+            "1000",
+            $this->createCurrencyEUR(),
+            $this->createUser6()
+        );
+
+        $this->assertEquals(3, $withdraw4->getFee());
+
+        $withdraw5 = $this->operationService->addNew(
+            "2021-12-27",
+            OperationType::WITHDRAW,
+            "500",
+            $this->createCurrencyEUR(),
+            $this->createUser6()
+        );
+
+        $this->assertEquals(0, $withdraw5->getFee());
+
+        $withdraw6 = $this->operationService->addNew(
+            "2021-12-27",
+            OperationType::WITHDRAW,
+            "1000",
+            $this->createCurrencyEUR(),
+            $this->createUser6()
+        );
+
+        $this->assertEquals(1.5, $withdraw6->getFee());
+
+        $withdraw7 = $this->operationService->addNew(
+            "2021-12-27",
+            OperationType::WITHDRAW,
+            "1000",
+            $this->createCurrencyEUR(),
+            $this->createUser6()
+        );
+
+        $this->assertEquals(3, $withdraw7->getFee());
     }
 }
