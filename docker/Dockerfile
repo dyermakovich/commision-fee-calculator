@@ -1,24 +1,12 @@
 FROM php:8.0-apache
 
 RUN apt-get update \
-  && apt-get install -y zip
+  && apt-get install -y zip \
+  && curl -s https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
 
-# Install composer
-
-# ENV COMPOSER_HOME /composer
-# ENV PATH ./vendor/bin:/composer/vendor/bin:$PATH
-# ENV COMPOSER_ALLOW_SUPERUSER 1
-# RUN curl -s https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin/ --filename=composer
-RUN curl -s https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
-
-COPY docker/apache2.conf /etc/apache2/apache2.conf
-
-# Setup working directory
 WORKDIR /var/www/html
-
+COPY ./docker/apache2.conf /etc/apache2/apache2.conf
 COPY . ./
-
-# Run composer install & autoload
 
 RUN composer install
 RUN composer dump-autoload -o
