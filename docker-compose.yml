@@ -5,3 +5,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile
+    volumes:
+      - ./src:/var/www/html/src
+      - ./tests:/var/www/html/tests
+      - ./script.php:/var/www/html/script.php

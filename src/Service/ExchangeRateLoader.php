@@ -130,6 +130,12 @@ class ExchangeRateLoader implements ExchangeRateLoaderInterface
         $exchangeRatesForCurrency = $this->getExchangeRatesFromCurrency($fromCurrencyUpperCase);
 
         if (!isset($exchangeRatesForCurrency[$toCurrencyUpperCase])) {
+            $this->loadExchangeRates($fromCurrency, [$toCurrency]);     
+        }
+
+        $exchangeRatesForCurrency = $this->getExchangeRatesFromCurrency($fromCurrencyUpperCase);
+
+        if (!isset($exchangeRatesForCurrency[$toCurrencyUpperCase])) {
             throw new ExchangeRateNotFoundException();
         }
 
