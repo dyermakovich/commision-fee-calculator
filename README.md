@@ -2,11 +2,11 @@
 
 Get your EXCHANGE_RATES_API_KEY from exchangeratesapi.io.
 
-In root directory there is input.csv file with some data, 
-you can modify it if you need to change input data.
+In root directory there is input.csv file with some sample data. 
 
 To run application you can use your local PHP >= 8.0 and Composer:
 ```
+composer install
 php script.php input.csv EXCHANGE_RATES_API_KEY
 ```
 To run tests you don't need API key.
