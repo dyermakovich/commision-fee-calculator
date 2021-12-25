@@ -19,7 +19,7 @@ final class MockExchangeRateLoader
      */
     public static function create(): ExchangeRateLoaderInterface
     {
-        $response = new MockResponse(
+        $response1 = new MockResponse(
             <<<END
             {
                 "success":true,
@@ -27,14 +27,27 @@ final class MockExchangeRateLoader
                 "base":"EUR",
                 "date":"2021-12-22",
                 "rates":{
-                    "USD":1.1497,
+                    "USD":1.1497
+                }
+            }
+            END
+        );
+
+        $response2 = new MockResponse(
+            <<<END
+            {
+                "success":true,
+                "timestamp":1640202843,
+                "base":"EUR",
+                "date":"2021-12-22",
+                "rates":{
                     "JPY":129.53
                 }
             }
             END
         );
 
-        return ExchangeRateLoader::create(new MockHttpClient([$response]));
+        return ExchangeRateLoader::create(new MockHttpClient([$response1, $response2]));
     }
 }
 

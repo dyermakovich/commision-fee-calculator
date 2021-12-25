@@ -45,11 +45,21 @@ class WithdrawTest extends TestCase
         return $this->currencyService->findOrAddNew("EUR", 2);
     }
 
+    private function createCurrencyJPY(): CurrencyInterface
+    {
+        return $this->currencyService->findOrAddNew("JPY", 0);
+    }
+
     private function createUser4(): UserInterface
     {
         return $this->userService->findOrAddNew("4", User::PRIVATE);
     }
 
+    private function createUser1(): UserInterface
+    {
+        return $this->userService->findOrAddNew("1", User::PRIVATE);
+    }
+    
     private function createWithdraw1(): OperationInterface
     {
         return $this->operationService->addNew(
@@ -83,6 +93,17 @@ class WithdrawTest extends TestCase
         );
     }
 
+    private function createWithdraw4(): OperationInterface
+    {
+        return $this->operationService->addNew(
+            "2016-01-06",
+            OperationType::WITHDRAW,
+            "30000",
+            $this->createCurrencyJPY(),
+            $this->createUser1()
+        );
+    }
+
     /**
      * @throws UnexpectedException
      */
@@ -112,5 +133,13 @@ class WithdrawTest extends TestCase
         $this->assertEquals(0, $withdraw3->getWithdrawAmountDuringThisWeekInEuro());
         $this->assertEquals(0, $withdraw3->getAmountForCharge());
         $this->assertEquals(0, $withdraw3->getFee());
+
+        $withdraw4 = $this->createWithdraw4();
+        $this->assertInstanceOf(Withdraw::class, $withdraw4);
+        $this->assertEquals("2016-01-04", $withdraw4->getTheNearestMondayAsString());
+        $this->assertEquals(0, $withdraw4->getWithdrawCountDuringThisWeek());
+        $this->assertEquals(0, $withdraw4->getWithdrawAmountDuringThisWeekInEuro());
+        $this->assertEquals(0, $withdraw4->getAmountForCharge());
+        $this->assertEquals(0, $withdraw4->getFee());
     }
 }
