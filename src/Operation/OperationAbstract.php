@@ -105,6 +105,10 @@ abstract class OperationAbstract implements OperationInterface
      */
     public function getTheNearestMonday(): DateTimeInterface
     {
+        if ($this->getDate()->format('N') === '1') {
+            return $this->getDate();
+        }
+
         $date = DateTime::createFromInterface($this->getDate())->modify("previous monday");
 
         if ($date === false) {
