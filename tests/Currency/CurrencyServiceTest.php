@@ -8,9 +8,6 @@ use DY\CFC\Currency\Currency;
 use DY\CFC\Currency\CurrencyService;
 use DY\CFC\Currency\CurrencyServiceInterface;
 use DY\CFC\Service\Exception\ExchangeRatesLoadingException;
-use DY\CFC\Service\Rounder;
-use DY\CFC\Service\RounderInterface;
-use DY\CFC\Tests\MockExchangeRateLoader;
 use PHPUnit\Framework\TestCase;
 
 final class CurrencyServiceTest extends TestCase
@@ -22,8 +19,7 @@ final class CurrencyServiceTest extends TestCase
      */
     public function setUp(): void
     {
-        $mockExchangeRateLoader = MockExchangeRateLoader::create();
-        $this->currencyService = CurrencyService::create($mockExchangeRateLoader);
+        $this->currencyService = CurrencyService::createMock();
         parent::setUp();
     }
 

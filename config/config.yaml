@@ -1,0 +1,18 @@
+base_currency: 'EUR'
+
+deposit:
+  commission: 0.0003
+
+withdraw:
+  private:
+    commission: 0.003
+
+    free_of_charge:
+      amount: 10000
+      currency: 'EUR'
+      count: 3
+      first_day: 1
+      last_day: 7
+
+  business:
+    commission: 0.005

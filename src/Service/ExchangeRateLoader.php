@@ -7,6 +7,8 @@ namespace DY\CFC\Service;
 use DY\CFC\Service\Exception\ExchangeRateNotFoundException;
 use DY\CFC\Service\Exception\ExchangeRatesLoadingException;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpClient\MockHttpClient;
+use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
@@ -15,23 +17,56 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class ExchangeRateLoader implements ExchangeRateLoaderInterface
 {
-    private const URL = 'http://api.exchangeratesapi.io/latest?access_key=%s&base=%s&symbols=%s';
+    public const MOCK_URL = 'http://mock.api.exchangeratesapi.io/latest?access_key=%s&base=%s&symbols=%s';
+    public const URL = 'http://api.exchangeratesapi.io/latest?access_key=%s&base=%s&symbols=%s';
 
-    private ?HttpClientInterface $client;
     private array $rates;
 
     /**
      * @throws ExchangeRatesLoadingException
      */
-    public static function create(?HttpClientInterface $client = null): ExchangeRateLoaderInterface
+    public function __construct(
+        private ?HttpClientInterface $client,
+        private string $url = self::URL
+    ) {
+        $this->loadExchangeRates("EUR", ["USD", "JPY"]);
+    }
+
+    /**
+     * @throws ExchangeRatesLoadingException
+     */
+    public static function createMock(): ExchangeRateLoaderInterface
     {
-        $loader = new ExchangeRateLoader();
+        $response1 = new MockResponse(
+            <<<END
+            {
+                "success":true,
+                "timestamp":1640202843,
+                "base":"EUR",
+                "date":"2021-12-22",
+                "rates":{
+                    "USD":1.1497
+                }
+            }
+            END
+        );
 
-        if (isset($client)) {
-            $loader->setHttpClient($client);
-        }
+        $response2 = new MockResponse(
+            <<<END
+            {
+                "success":true,
+                "timestamp":1640202843,
+                "base":"EUR",
+                "date":"2021-12-22",
+                "rates":{
+                    "JPY":129.53
+                }
+            }
+            END
+        );
 
-        return $loader->loadExchangeRates("EUR", ["USD", "JPY"]);
+        $client = new MockHttpClient([$response1, $response2]);
+        return new ExchangeRateLoader($client, self::MOCK_URL);
     }
 
     public function setHttpClient(HttpClientInterface $client): ExchangeRateLoaderInterface
@@ -119,6 +154,7 @@ class ExchangeRateLoader implements ExchangeRateLoaderInterface
 
     /**
      * @throws ExchangeRateNotFoundException
+     * @throws ExchangeRatesLoadingException
      */
     public function getExchangeRate(string $fromCurrency, string $toCurrency): float
     {
@@ -132,7 +168,7 @@ class ExchangeRateLoader implements ExchangeRateLoaderInterface
         $exchangeRatesForCurrency = $this->getExchangeRatesFromCurrency($fromCurrencyUpperCase);
 
         if (!isset($exchangeRatesForCurrency[$toCurrencyUpperCase])) {
-            $this->loadExchangeRates($fromCurrency, [$toCurrency]);     
+            $this->loadExchangeRates($fromCurrency, [$toCurrency]);
         }
 
         $exchangeRatesForCurrency = $this->getExchangeRatesFromCurrency($fromCurrencyUpperCase);
@@ -142,5 +178,10 @@ class ExchangeRateLoader implements ExchangeRateLoaderInterface
         }
 
         return $exchangeRatesForCurrency[$toCurrencyUpperCase];
+    }
+
+    public function getUrl(): string
+    {
+        return $this->url;
     }
 }

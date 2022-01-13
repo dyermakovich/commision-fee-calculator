@@ -8,14 +8,12 @@ use DY\CFC\Currency\CurrencyInterface;
 use DY\CFC\Currency\CurrencyService;
 use DY\CFC\Currency\CurrencyServiceInterface;
 use DY\CFC\Exception\UnexpectedException;
-use DY\CFC\Operation\OperationAbstract;
 use DY\CFC\Operation\OperationInterface;
 use DY\CFC\Operation\OperationService;
 use DY\CFC\Operation\OperationServiceInterface;
 use DY\CFC\Operation\OperationType;
 use DY\CFC\Operation\Withdraw;
 use DY\CFC\Service\Exception\ExchangeRatesLoadingException;
-use DY\CFC\Tests\MockExchangeRateLoader;
 use DY\CFC\User\User;
 use DY\CFC\User\UserInterface;
 use DY\CFC\User\UserService;
@@ -34,7 +32,7 @@ class WithdrawTest extends TestCase
     protected function setUp(): void
     {
         $this->userService = UserService::create();
-        $this->currencyService = CurrencyService::create(MockExchangeRateLoader::create());
+        $this->currencyService = CurrencyService::createMock();
         $this->operationService = OperationService::create();
 
         parent::setUp();

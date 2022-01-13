@@ -35,7 +35,7 @@ class Parser implements ParserInterface
     {
         try {
             return new DateTimeImmutable($date);
-        } catch (Exception $e) {
+        } catch (Exception) {
             return $defaultValue;
         }
     }

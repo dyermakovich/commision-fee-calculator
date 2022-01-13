@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace DY\CFC\Tests;
 
 use DY\CFC\CommissionFeeCalculatorApplication;
+use DY\CFC\Currency\CurrencyService;
 use DY\CFC\Exception\IncorrectInputException;
-use DY\CFC\Service\Exception\ExchangeRatesLoadingException;
 use DY\CFC\Service\ExchangeRateLoader;
-use DY\CFC\Service\ExchangeRateLoaderInterface;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\HttpClient\MockHttpClient;
-use Symfony\Component\HttpClient\Response\MockResponse;
+use Exception;
+use ReflectionProperty;
 
 final class CommissionFeeCalculatorApplicationTest extends TestCase
 {
@@ -53,14 +51,36 @@ final class CommissionFeeCalculatorApplicationTest extends TestCase
         ];
     }
 
+    private function checkMockExchangeRateLoader(CommissionFeeCalculatorApplication $app): void
+    {
+        $currencyServiceProperty = new ReflectionProperty(
+            CommissionFeeCalculatorApplication::class,
+            'currencyService'
+        );
+        $currencyServiceProperty->setAccessible(true);
+
+        $exchangeRateLoaderProperty = new ReflectionProperty(
+            CurrencyService::class,
+            'exchangeRateLoader'
+        );
+        $exchangeRateLoaderProperty->setAccessible(true);
+
+        $currencyService = $currencyServiceProperty->getValue($app);
+        $exchangeRateLoader = $exchangeRateLoaderProperty->getValue($currencyService);
+
+        $this->assertEquals(ExchangeRateLoader::MOCK_URL, $exchangeRateLoader->getUrl());
+    }
+
     /**
      * @throws IncorrectInputException
-     * @throws ExchangeRatesLoadingException
+     * @throws Exception
      */
     public function testApplication(): void
     {
-        $exchangeRateLoader = MockExchangeRateLoader::create();
-        $app = CommissionFeeCalculatorApplication::create($exchangeRateLoader);
+        $app = $this->getApplication();
+
+        $this->checkMockExchangeRateLoader($app);
+
         $input = $this->getInput();
 
         foreach ($this->getOutput() as $i => $singleOutput) {

@@ -8,6 +8,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 interface ExchangeRateLoaderInterface
 {
+    public function getUrl(): string;
+
     public function setHttpClient(HttpClientInterface $client): ExchangeRateLoaderInterface;
 
     public function loadExchangeRates(string $baseCurrency, array $symbols): ExchangeRateLoaderInterface;

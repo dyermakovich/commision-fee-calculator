@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace DY\CFC;
 
-use DY\CFC\Currency\CurrencyService;
 use DY\CFC\Currency\CurrencyServiceInterface;
 use DY\CFC\Exception\IncorrectInputException;
-use DY\CFC\Operation\OperationService;
 use DY\CFC\Operation\OperationServiceInterface;
-use DY\CFC\Service\ExchangeRateLoaderInterface;
-use DY\CFC\User\UserService;
+use DY\CFC\Service\ExchangeRateLoader;
 use DY\CFC\User\UserServiceInterface;
+use Exception;
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
 
 class CommissionFeeCalculatorApplication
 {
@@ -23,15 +24,23 @@ class CommissionFeeCalculatorApplication
     }
 
     /**
-     * @throws Service\Exception\ExchangeRatesLoadingException
+     * @throws Exception
      */
-    public static function create(?ExchangeRateLoaderInterface $loader = null): CommissionFeeCalculatorApplication
+    public static function create(bool $forTests = false): CommissionFeeCalculatorApplication
     {
-        return new CommissionFeeCalculatorApplication(
-            UserService::create(),
-            OperationService::create(),
-            CurrencyService::create($loader)
-        );
+        $container = new ContainerBuilder();
+
+        $loader = new YamlFileLoader($container, new FileLocator(dirname(__DIR__) . '/config'));
+        $loader->load('services.yaml');
+
+        if ($forTests) {
+            $container->getDefinition(ExchangeRateLoader::class)
+                ->setFactory([ExchangeRateLoader::class, 'createMock']);
+        }
+
+        $container->compile();
+
+        return $container->get(CommissionFeeCalculatorApplication::class);
     }
 
     /**

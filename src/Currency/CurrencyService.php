@@ -11,23 +11,20 @@ use DY\CFC\Service\ExchangeRateLoaderInterface;
 
 class CurrencyService implements CurrencyServiceInterface
 {
-    private const EUR = "EUR";
+    private const EUR = 'EUR';
 
     private array $currencies = [];
 
-    public function __construct(private ?ExchangeRateLoaderInterface $exchangeRateLoader)
+    public function __construct(private ExchangeRateLoaderInterface $exchangeRateLoader)
     {
     }
 
     /**
      * @throws ExchangeRatesLoadingException
      */
-    public static function create(?ExchangeRateLoaderInterface $loader = null): CurrencyServiceInterface
+    public static function createMock(): CurrencyServiceInterface
     {
-        if (!isset($loader)) {
-            $loader = ExchangeRateLoader::create();
-        }
-        return new CurrencyService($loader);
+        return new self(ExchangeRateLoader::createMock());
     }
 
     /**
