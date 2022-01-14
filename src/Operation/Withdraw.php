@@ -8,12 +8,9 @@ use DY\CFC\Exception\UnexpectedException;
 
 class Withdraw extends OperationAbstract
 {
-    private const MAX_FREE_OF_CHARGE_WITHDRAW_AMOUNT_PER_WEEK_IN_EUR = 1000;
-    private const MAX_FREE_OF_CHARGE_WITHDRAW_COUNT_PER_WEEK = 3;
-
-    public function getMaxFreeOfChargeWithdrawAmountPerWeekInEuro(): int
+    public function getMaxFreeOfChargeWithdrawAmountPerWeekInBaseCurrency(): float
     {
-        return self::MAX_FREE_OF_CHARGE_WITHDRAW_AMOUNT_PER_WEEK_IN_EUR;
+        return $this->config->getWithdrawPrivateFreeOfChargeAmount();
     }
 
     /**
@@ -27,9 +24,9 @@ class Withdraw extends OperationAbstract
     /**
      * @throws UnexpectedException
      */
-    public function getWithdrawAmountDuringThisWeekInEuro(): float
+    public function getWithdrawAmountDuringThisWeekInBaseCurrency(): float
     {
-        return $this->getOperationsAmountDuringThisWeekInEuro(OperationType::WITHDRAW);
+        return $this->getOperationsAmountDuringThisWeekInBaseCurrency(OperationType::WITHDRAW);
     }
 
     /**
@@ -41,25 +38,30 @@ class Withdraw extends OperationAbstract
             return $this->getAmount();
         }
 
-        if ($this->getWithdrawCountDuringThisWeek() >= self::MAX_FREE_OF_CHARGE_WITHDRAW_COUNT_PER_WEEK) {
+        if ($this->getWithdrawCountDuringThisWeek() >= $this->config->getWithdrawPrivateFreeOfChargeCount()) {
             return $this->getAmount();
         }
 
-        $amountFreeOfChargeInEuro = $this->getMaxFreeOfChargeWithdrawAmountPerWeekInEuro() - $this->getWithdrawAmountDuringThisWeekInEuro();
+        $amountFreeOfChargeInBaseCurrency = $this->getMaxFreeOfChargeWithdrawAmountPerWeekInBaseCurrency()
+            - $this->getWithdrawAmountDuringThisWeekInBaseCurrency();
 
-        if ($amountFreeOfChargeInEuro <= 0) {
+        if ($amountFreeOfChargeInBaseCurrency <= 0) {
             return $this->getAmount();
         }
 
-        if ($this->getAmountInEuro() <= $amountFreeOfChargeInEuro) {
+        if ($this->getAmountInBaseCurrency() <= $amountFreeOfChargeInBaseCurrency) {
             return 0;
         }
 
-        return $this->getCurrency()->convertFromEuro($this->getAmountInEuro() - $amountFreeOfChargeInEuro);
+        return $this->getCurrency()->convertFromBaseCurrency(
+            $this->getAmountInBaseCurrency() - $amountFreeOfChargeInBaseCurrency
+        );
     }
 
     public function getCommissionRate(): float
     {
-        return $this->getUser()->isBusiness() ? 0.005 : 0.003;
+        return $this->getUser()->isBusiness()
+            ? $this->config->getWithdrawBusinessCommission()
+            : $this->config->getWithdrawPrivateCommission();
     }
 }

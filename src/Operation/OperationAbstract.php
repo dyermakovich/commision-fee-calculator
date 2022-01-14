@@ -6,6 +6,7 @@ namespace DY\CFC\Operation;
 
 use DateTime;
 use DateTimeInterface;
+use DY\CFC\Config\ConfigInterface;
 use DY\CFC\Currency\CurrencyInterface;
 use DY\CFC\Exception\UnexpectedException;
 use DY\CFC\Operation\Exception\WrongOperationTypeException;
@@ -22,7 +23,8 @@ abstract class OperationAbstract implements OperationInterface
         private string $type,
         private float $amount,
         private CurrencyInterface $currency,
-        private UserInterface $user
+        private UserInterface $user,
+        protected ConfigInterface $config
     ) {
         $this->previous = $user->getLastOperation();
     }
@@ -35,13 +37,14 @@ abstract class OperationAbstract implements OperationInterface
         string $type,
         float $amount,
         CurrencyInterface $currency,
-        UserInterface $user
+        UserInterface $user,
+        ConfigInterface $config
     ): OperationInterface {
         if ($type === OperationType::DEPOSIT) {
-            return new Deposit($date, $type, $amount, $currency, $user);
+            return new Deposit($date, $type, $amount, $currency, $user, $config);
         }
         if ($type === OperationType::WITHDRAW) {
-            return new Withdraw($date, $type, $amount, $currency, $user);
+            return new Withdraw($date, $type, $amount, $currency, $user, $config);
         }
 
         throw new WrongOperationTypeException();
@@ -72,9 +75,9 @@ abstract class OperationAbstract implements OperationInterface
         return $this->amount;
     }
 
-    public function getAmountInEuro(): float
+    public function getAmountInBaseCurrency(): float
     {
-        return $this->currency->convertToEuro($this->getAmount());
+        return $this->currency->convertToBaseCurrency($this->getAmount());
     }
 
     public function getCurrency(): CurrencyInterface
@@ -167,12 +170,12 @@ abstract class OperationAbstract implements OperationInterface
      * Returns amount of operations from the nearest Monday before current operation.
      * @throws UnexpectedException
      */
-    public function getOperationsAmountDuringThisWeekInEuro(string $type = OperationType::DEPOSIT): float
+    public function getOperationsAmountDuringThisWeekInBaseCurrency(string $type = OperationType::DEPOSIT): float
     {
         $amount = 0;
 
         foreach ($this->getOperationsDuringThisWeek($type) as $operation) {
-            $amount += $operation->getAmountInEuro();
+            $amount += $operation->getAmountInBaseCurrency();
         }
 
         return $amount;

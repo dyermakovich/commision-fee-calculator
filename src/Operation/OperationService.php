@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace DY\CFC\Operation;
 
+use DY\CFC\Config\Config;
+use DY\CFC\Config\ConfigInterface;
 use DY\CFC\Currency\CurrencyInterface;
 use DY\CFC\Operation\Exception\WrongOperationAmountException;
 use DY\CFC\Operation\Exception\WrongOperationDateException;
@@ -18,13 +20,14 @@ class OperationService implements OperationServiceInterface
 {
     public function __construct(
         private ParserInterface $parser,
-        private RounderInterface $rounder
+        private RounderInterface $rounder,
+        private ConfigInterface $config
     ) {
     }
 
     public static function create(): OperationServiceInterface
     {
-        return new OperationService(Parser::create(), Rounder::create());
+        return new OperationService(Parser::create(), Rounder::create(), Config::create());
     }
 
     /**
@@ -56,7 +59,8 @@ class OperationService implements OperationServiceInterface
             $type,
             $operationAmount,
             $currency,
-            $user
+            $user,
+            $this->config
         );
 
         $operation->setRounder($this->rounder);

@@ -10,9 +10,9 @@ use DY\CFC\Operation\OperationServiceInterface;
 use DY\CFC\Service\ExchangeRateLoader;
 use DY\CFC\User\UserServiceInterface;
 use Exception;
-use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+use DY\CFC\FileLocator\FileLocator;
 
 class CommissionFeeCalculatorApplication
 {
@@ -30,8 +30,8 @@ class CommissionFeeCalculatorApplication
     {
         $container = new ContainerBuilder();
 
-        $loader = new YamlFileLoader($container, new FileLocator(dirname(__DIR__) . '/config'));
-        $loader->load('services.yaml');
+        $loader = new YamlFileLoader($container, new FileLocator());
+        $loader->load(FileLocator::SERVICES);
 
         if ($forTests) {
             $container->getDefinition(ExchangeRateLoader::class)

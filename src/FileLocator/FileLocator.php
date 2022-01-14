@@ -6,8 +6,8 @@ namespace DY\CFC\FileLocator;
 
 class FileLocator extends \Symfony\Component\Config\FileLocator implements FileLocatorInterface
 {
-    private const SERVICES = 'services.yaml';
-    private const CONFIG = 'config.yaml';
+    public const SERVICES = 'services.yaml';
+    public const CONFIG = 'config.yaml';
 
     public function __construct()
     {

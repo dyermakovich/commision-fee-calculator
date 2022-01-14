@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace DY\CFC\Currency;
 
+use DY\CFC\Config\Config;
+use DY\CFC\Config\ConfigInterface;
 use DY\CFC\Currency\Exception\UnsupportedCurrencyPrecisionException;
 use DY\CFC\Service\Exception\ExchangeRatesLoadingException;
 use DY\CFC\Service\ExchangeRateLoader;
@@ -11,12 +13,12 @@ use DY\CFC\Service\ExchangeRateLoaderInterface;
 
 class CurrencyService implements CurrencyServiceInterface
 {
-    private const EUR = 'EUR';
-
     private array $currencies = [];
 
-    public function __construct(private ExchangeRateLoaderInterface $exchangeRateLoader)
-    {
+    public function __construct(
+        private ExchangeRateLoaderInterface $exchangeRateLoader,
+        private ConfigInterface $config
+    ) {
     }
 
     /**
@@ -24,7 +26,7 @@ class CurrencyService implements CurrencyServiceInterface
      */
     public static function createMock(): CurrencyServiceInterface
     {
-        return new self(ExchangeRateLoader::createMock());
+        return new self(ExchangeRateLoader::createMock(), Config::create());
     }
 
     /**
@@ -54,9 +56,12 @@ class CurrencyService implements CurrencyServiceInterface
         return $this->currencies[strtoupper($name)] ?? null;
     }
 
-    public function getExchangeRateFromEuro(string $symbol): float
+    public function getExchangeRate(string $symbol): float
     {
-        return $this->exchangeRateLoader?->getExchangeRate(self::EUR, $symbol) ?? 1;
+        return $this->exchangeRateLoader?->getExchangeRate(
+            $this->config->getBaseCurrency(),
+            $symbol
+        ) ?? 1;
     }
 
     public function findOrAddNew(string $name, int $precision): CurrencyInterface
@@ -65,8 +70,8 @@ class CurrencyService implements CurrencyServiceInterface
 
         if (!isset($this->currencies[$uppercaseName])) {
             $currency = new Currency($uppercaseName, $precision);
-            $exchangeRate = $this->getExchangeRateFromEuro($currency->getName());
-            $currency->setExchangeRateFromEuro($exchangeRate);
+            $exchangeRate = $this->getExchangeRate($currency->getName());
+            $currency->setExchangeRate($exchangeRate);
             $this->currencies[$uppercaseName] = $currency;
         }
 

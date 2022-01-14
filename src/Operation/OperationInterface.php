@@ -18,7 +18,7 @@ interface OperationInterface extends RounderAwareInterface, PreviousWeekOperatio
 
     public function getAmount(): float;
 
-    public function getAmountInEuro(): float;
+    public function getAmountInBaseCurrency(): float;
 
     public function getAmountForCharge(): float;
 

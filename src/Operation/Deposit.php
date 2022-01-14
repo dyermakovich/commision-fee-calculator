@@ -13,6 +13,6 @@ class Deposit extends OperationAbstract
 
     public function getCommissionRate(): float
     {
-        return 0.0003;
+        return $this->config->getDepositCommission();
     }
 }

@@ -116,8 +116,8 @@ class WithdrawTest extends TestCase
         $this->assertInstanceOf(Withdraw::class, $withdraw1);
         $this->assertEquals("2014-12-29", $withdraw1->getTheNearestMondayAsString());
         $this->assertEquals(0, $withdraw1->getWithdrawCountDuringThisWeek());
-        $this->assertEquals(0, $withdraw1->getWithdrawAmountDuringThisWeekInEuro());
-        $this->assertEquals(1000, $withdraw1->getMaxFreeOfChargeWithdrawAmountPerWeekInEuro());
+        $this->assertEquals(0, $withdraw1->getWithdrawAmountDuringThisWeekInBaseCurrency());
+        $this->assertEquals(1000, $withdraw1->getMaxFreeOfChargeWithdrawAmountPerWeekInBaseCurrency());
         $this->assertEquals(200, $withdraw1->getAmountForCharge());
         $this->assertEquals(0.6, $withdraw1->getFee());
 
@@ -125,7 +125,7 @@ class WithdrawTest extends TestCase
         $this->assertInstanceOf(Withdraw::class, $withdraw2);
         $this->assertEquals("2014-12-29", $withdraw2->getTheNearestMondayAsString());
         $this->assertEquals(1, $withdraw2->getWithdrawCountDuringThisWeek());
-        $this->assertEquals(1200, $withdraw2->getWithdrawAmountDuringThisWeekInEuro());
+        $this->assertEquals(1200, $withdraw2->getWithdrawAmountDuringThisWeekInBaseCurrency());
         $this->assertEquals(1000, $withdraw2->getAmountForCharge());
         $this->assertEquals(3, $withdraw2->getFee());
 
@@ -133,7 +133,7 @@ class WithdrawTest extends TestCase
         $this->assertInstanceOf(Withdraw::class, $withdraw3);
         $this->assertEquals("2016-01-04", $withdraw3->getTheNearestMondayAsString());
         $this->assertEquals(0, $withdraw3->getWithdrawCountDuringThisWeek());
-        $this->assertEquals(0, $withdraw3->getWithdrawAmountDuringThisWeekInEuro());
+        $this->assertEquals(0, $withdraw3->getWithdrawAmountDuringThisWeekInBaseCurrency());
         $this->assertEquals(0, $withdraw3->getAmountForCharge());
         $this->assertEquals(0, $withdraw3->getFee());
 
@@ -141,7 +141,7 @@ class WithdrawTest extends TestCase
         $this->assertInstanceOf(Withdraw::class, $withdraw4);
         $this->assertEquals("2016-01-04", $withdraw4->getTheNearestMondayAsString());
         $this->assertEquals(0, $withdraw4->getWithdrawCountDuringThisWeek());
-        $this->assertEquals(0, $withdraw4->getWithdrawAmountDuringThisWeekInEuro());
+        $this->assertEquals(0, $withdraw4->getWithdrawAmountDuringThisWeekInBaseCurrency());
         $this->assertEquals(0, $withdraw4->getAmountForCharge());
         $this->assertEquals(0, $withdraw4->getFee());
     }

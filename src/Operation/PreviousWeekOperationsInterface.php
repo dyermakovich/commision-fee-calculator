@@ -8,5 +8,5 @@ interface PreviousWeekOperationsInterface
 
     public function getOperationsCountDuringThisWeek(string $type = OperationType::DEPOSIT): int;
 
-    public function getOperationsAmountDuringThisWeekInEuro(string $type = OperationType::DEPOSIT): float;
+    public function getOperationsAmountDuringThisWeekInBaseCurrency(string $type = OperationType::DEPOSIT): float;
 }

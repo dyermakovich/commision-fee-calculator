@@ -10,9 +10,9 @@ interface CurrencyInterface
 
     public function getPrecision(): int;
 
-    public function convertFromEuro(float $amountInEuro): float;
+    public function convertFromBaseCurrency(float $amount): float;
 
-    public function convertToEuro(float $amount): float;
+    public function convertToBaseCurrency(float $amount): float;
 
-    public function setExchangeRateFromEuro(float $rate): CurrencyInterface;
+    public function setExchangeRate(float $rate): CurrencyInterface;
 }

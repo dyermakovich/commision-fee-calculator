@@ -9,7 +9,7 @@ class Currency implements CurrencyInterface
     public function __construct(
         private string $name,
         private int $precision,
-        private float $exchangeRageFromEuro = 1
+        private float $exchangeRate = 1
     ) {
     }
 
@@ -23,19 +23,19 @@ class Currency implements CurrencyInterface
         return $this->precision;
     }
 
-    public function setExchangeRateFromEuro(float $rate): CurrencyInterface
+    public function setExchangeRate(float $rate): CurrencyInterface
     {
-        $this->exchangeRageFromEuro = $rate;
+        $this->exchangeRate = $rate;
         return $this;
     }
 
-    public function convertFromEuro(float $amountInEuro): float
+    public function convertFromBaseCurrency(float $amount): float
     {
-        return $this->exchangeRageFromEuro * $amountInEuro;
+        return $this->exchangeRate * $amount;
     }
 
-    public function convertToEuro(float $amount): float
+    public function convertToBaseCurrency(float $amount): float
     {
-        return $amount / $this->exchangeRageFromEuro;
+        return $amount / $this->exchangeRate;
     }
 }
