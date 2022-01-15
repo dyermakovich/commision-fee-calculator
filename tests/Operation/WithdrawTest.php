@@ -8,17 +8,22 @@ use DY\CFC\Currency\CurrencyInterface;
 use DY\CFC\Currency\CurrencyService;
 use DY\CFC\Currency\CurrencyServiceInterface;
 use DY\CFC\Exception\UnexpectedException;
+use DY\CFC\Operation\Operation;
 use DY\CFC\Operation\OperationInterface;
 use DY\CFC\Operation\OperationService;
 use DY\CFC\Operation\OperationServiceInterface;
 use DY\CFC\Operation\OperationType;
-use DY\CFC\Operation\Withdraw;
+use DY\CFC\Operation\Strategy\SearchOperationStrategyInterface;
+use DY\CFC\Operation\Strategy\WithdrawStrategy;
 use DY\CFC\Service\Exception\ExchangeRatesLoadingException;
 use DY\CFC\User\User;
 use DY\CFC\User\UserInterface;
 use DY\CFC\User\UserService;
 use DY\CFC\User\UserServiceInterface;
 use PHPUnit\Framework\TestCase;
+use ReflectionMethod;
+use ReflectionProperty;
+use Throwable;
 
 class WithdrawTest extends TestCase
 {
@@ -107,41 +112,106 @@ class WithdrawTest extends TestCase
         );
     }
 
+    private function getWithdrawStrategy(OperationInterface $operation): WithdrawStrategy
+    {
+        $strategyProperty = new ReflectionProperty(Operation::class, 'strategy');
+        $strategyProperty->setAccessible(true);
+        return $strategyProperty->getValue($operation);
+    }
+
+    private function getSearchOperationStrategy(OperationInterface $operation): SearchOperationStrategyInterface
+    {
+        $strategy = $this->getWithdrawStrategy($operation);
+        $searchStrategyProperty = new ReflectionProperty(WithdrawStrategy::class, 'searchOperationStrategy');
+        $searchStrategyProperty->setAccessible(true);
+        return $searchStrategyProperty->getValue($strategy);
+    }
+
+    /**
+     * @throws UnexpectedException
+     */
+    private function getTheNearestMondayAsString(OperationInterface $operation): string
+    {
+        return $this->getSearchOperationStrategy($operation)->getTheNearestMondayAsString($operation);
+    }
+
+    /**
+     * @throws UnexpectedException
+     */
+    private function invokeWithdrawStrategyPrivateMethod(
+        OperationInterface $operation,
+        string $methodName
+    ): mixed {
+        try {
+            $method = new ReflectionMethod(WithdrawStrategy::class, $methodName);
+            $method->setAccessible(true);
+            return $method->invoke($this->getWithdrawStrategy($operation));
+        } catch (Throwable $throwable) {
+            throw new UnexpectedException(previous: $throwable);
+        }
+    }
+
+    /**
+     * @throws UnexpectedException
+     */
+    private function getWithdrawCountDuringThisWeek(OperationInterface $operation): int
+    {
+        return $this->invokeWithdrawStrategyPrivateMethod($operation, 'getWithdrawCountDuringThisWeek');
+    }
+
+    /**
+     * @throws UnexpectedException
+     */
+    private function getWithdrawAmountDuringThisWeekInBaseCurrency(OperationInterface $operation): float
+    {
+        return $this->invokeWithdrawStrategyPrivateMethod(
+            $operation,
+            'getWithdrawAmountDuringThisWeekInBaseCurrency'
+        );
+    }
+
+    /**
+     * @throws UnexpectedException
+     */
+    private function getMaxFreeOfChargeWithdrawAmountPerWeekInBaseCurrency(OperationInterface $operation): float
+    {
+        return $this->invokeWithdrawStrategyPrivateMethod(
+            $operation,
+            'getMaxFreeOfChargeWithdrawAmountPerWeekInBaseCurrency'
+        );
+    }
+
     /**
      * @throws UnexpectedException
      */
     public function testWithdraw(): void
     {
         $withdraw1 = $this->createWithdraw1();
-        $this->assertInstanceOf(Withdraw::class, $withdraw1);
-        $this->assertEquals("2014-12-29", $withdraw1->getTheNearestMondayAsString());
-        $this->assertEquals(0, $withdraw1->getWithdrawCountDuringThisWeek());
-        $this->assertEquals(0, $withdraw1->getWithdrawAmountDuringThisWeekInBaseCurrency());
-        $this->assertEquals(1000, $withdraw1->getMaxFreeOfChargeWithdrawAmountPerWeekInBaseCurrency());
+        $this->assertEquals("2014-12-29", $this->getTheNearestMondayAsString($withdraw1));
+        $this->assertEquals(0, $this->getWithdrawCountDuringThisWeek($withdraw1));
+        $this->assertEquals(0, $this->getWithdrawAmountDuringThisWeekInBaseCurrency($withdraw1));
+        $this->assertEquals(1000, $this->getMaxFreeOfChargeWithdrawAmountPerWeekInBaseCurrency($withdraw1));
         $this->assertEquals(200, $withdraw1->getAmountForCharge());
         $this->assertEquals(0.6, $withdraw1->getFee());
 
         $withdraw2 = $this->createWithdraw2();
-        $this->assertInstanceOf(Withdraw::class, $withdraw2);
-        $this->assertEquals("2014-12-29", $withdraw2->getTheNearestMondayAsString());
-        $this->assertEquals(1, $withdraw2->getWithdrawCountDuringThisWeek());
-        $this->assertEquals(1200, $withdraw2->getWithdrawAmountDuringThisWeekInBaseCurrency());
+        $this->assertEquals("2014-12-29", $this->getTheNearestMondayAsString($withdraw2));
+        $this->assertEquals(1, $this->getWithdrawCountDuringThisWeek($withdraw2));
+        $this->assertEquals(1200, $this->getWithdrawAmountDuringThisWeekInBaseCurrency($withdraw2));
         $this->assertEquals(1000, $withdraw2->getAmountForCharge());
         $this->assertEquals(3, $withdraw2->getFee());
 
         $withdraw3 = $this->createWithdraw3();
-        $this->assertInstanceOf(Withdraw::class, $withdraw3);
-        $this->assertEquals("2016-01-04", $withdraw3->getTheNearestMondayAsString());
-        $this->assertEquals(0, $withdraw3->getWithdrawCountDuringThisWeek());
-        $this->assertEquals(0, $withdraw3->getWithdrawAmountDuringThisWeekInBaseCurrency());
+        $this->assertEquals("2016-01-04", $this->getTheNearestMondayAsString($withdraw3));
+        $this->assertEquals(0, $this->getWithdrawCountDuringThisWeek($withdraw3));
+        $this->assertEquals(0, $this->getWithdrawAmountDuringThisWeekInBaseCurrency($withdraw3));
         $this->assertEquals(0, $withdraw3->getAmountForCharge());
         $this->assertEquals(0, $withdraw3->getFee());
 
         $withdraw4 = $this->createWithdraw4();
-        $this->assertInstanceOf(Withdraw::class, $withdraw4);
-        $this->assertEquals("2016-01-04", $withdraw4->getTheNearestMondayAsString());
-        $this->assertEquals(0, $withdraw4->getWithdrawCountDuringThisWeek());
-        $this->assertEquals(0, $withdraw4->getWithdrawAmountDuringThisWeekInBaseCurrency());
+        $this->assertEquals("2016-01-04", $this->getTheNearestMondayAsString($withdraw4));
+        $this->assertEquals(0, $this->getWithdrawCountDuringThisWeek($withdraw4));
+        $this->assertEquals(0, $this->getWithdrawAmountDuringThisWeekInBaseCurrency($withdraw4));
         $this->assertEquals(0, $withdraw4->getAmountForCharge());
         $this->assertEquals(0, $withdraw4->getFee());
     }

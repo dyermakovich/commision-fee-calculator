@@ -10,6 +10,7 @@ use DY\CFC\Currency\CurrencyInterface;
 use DY\CFC\Operation\Exception\WrongOperationAmountException;
 use DY\CFC\Operation\Exception\WrongOperationDateException;
 use DY\CFC\Operation\Exception\WrongOperationTypeException;
+use DY\CFC\Operation\Factory\OperationFactory;
 use DY\CFC\Service\Parser;
 use DY\CFC\Service\ParserInterface;
 use DY\CFC\Service\Rounder;
@@ -54,16 +55,16 @@ class OperationService implements OperationServiceInterface
             throw new WrongOperationAmountException();
         }
 
-        $operation = OperationAbstract::create(
+        $operation = OperationFactory::create(
             $operationDate,
             $type,
             $operationAmount,
             $currency,
             $user,
-            $this->config
+            $this->config,
+            $this->rounder
         );
 
-        $operation->setRounder($this->rounder);
         $user->addOperation($operation);
 
         return $operation;
