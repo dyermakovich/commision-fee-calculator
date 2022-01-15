@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace DY\CFC\Operation;
 
-class Deposit extends OperationAbstract
+final class Deposit implements OperationInterface
 {
+    use OperationTrait;
+    
     public function getAmountForCharge(): float
     {
         return $this->getAmount();

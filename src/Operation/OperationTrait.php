@@ -13,7 +13,7 @@ use DY\CFC\Operation\Exception\WrongOperationTypeException;
 use DY\CFC\Service\RounderInterface;
 use DY\CFC\User\UserInterface;
 
-abstract class OperationAbstract implements OperationInterface
+trait OperationTrait
 {
     private ?OperationInterface $previous;
     private ?RounderInterface $rounder;

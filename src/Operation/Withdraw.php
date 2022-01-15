@@ -6,8 +6,10 @@ namespace DY\CFC\Operation;
 
 use DY\CFC\Exception\UnexpectedException;
 
-class Withdraw extends OperationAbstract
+final class Withdraw implements OperationInterface
 {
+    use OperationTrait;
+
     public function getMaxFreeOfChargeWithdrawAmountPerWeekInBaseCurrency(): float
     {
         return $this->config->getWithdrawPrivateFreeOfChargeAmount();
