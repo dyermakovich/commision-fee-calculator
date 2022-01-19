@@ -8,13 +8,11 @@ use DateTimeInterface;
 use DY\CFC\Currency\CurrencyInterface;
 use DY\CFC\User\UserInterface;
 
-interface OperationInterface extends RounderAwareInterface, PreviousWeekOperationsInterface
+interface OperationInterface
 {
     public function getDate(): DateTimeInterface;
 
     public function getUser(): UserInterface;
-
-    public function isDeposit(): bool;
 
     public function getAmount(): float;
 
