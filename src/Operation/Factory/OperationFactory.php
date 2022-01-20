@@ -27,7 +27,7 @@ class OperationFactory
         ConfigInterface $config,
         RounderInterface $rounder
     ): OperationInterface {
-        $operation = new Operation($date, $amount, $currency, $user, $rounder);
+        $operation = new Operation($date, $amount, $currency, $user);
 
         $strategy = OperationStrategyFactory::create($type, $config, $operation);
         $feeStrategy = FeeStrategyFactory::create($operation, $rounder);

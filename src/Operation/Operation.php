@@ -8,7 +8,6 @@ use DateTimeInterface;
 use DY\CFC\Currency\CurrencyInterface;
 use DY\CFC\Operation\Strategy\FeeStrategyInterface;
 use DY\CFC\Operation\Strategy\OperationStrategyInterface;
-use DY\CFC\Service\RounderInterface;
 use DY\CFC\User\UserInterface;
 
 class Operation implements OperationInterface
@@ -21,8 +20,7 @@ class Operation implements OperationInterface
         private DateTimeInterface $date,
         private float $amount,
         private CurrencyInterface $currency,
-        private UserInterface $user,
-        private RounderInterface $rounder
+        private UserInterface $user
     ) {
         $this->previous = $user->getLastOperation();
     }
